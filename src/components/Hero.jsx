@@ -1,5 +1,5 @@
 import { Check } from 'lucide-react'
-import { VALUE_PROPS } from '@/lib/constants'
+import { HERO_BADGE, VALUE_PROPS } from '@/lib/constants'
 import { LeadForm } from '@/components/LeadForm'
 import { NAV_OFFSET } from '@/components/Navbar'
 
@@ -23,21 +23,21 @@ export function Hero() {
         <div className="lg:col-span-7">
           <span className="inline-flex items-center gap-2 rounded-full border border-ics-primary/40 bg-ics-primary/10 px-4 py-1.5 text-xs font-semibold text-ics-primary shadow-sm backdrop-blur-sm sm:text-sm">
             <span className="h-2 w-2 rounded-full bg-emerald-400" aria-hidden />
-            30 Years In Business — Sacramento, CA — DBE Certified
+            {HERO_BADGE}
           </span>
 
           <h1 className="mt-6 font-display text-3xl font-extrabold leading-tight text-white text-balance sm:text-4xl lg:text-6xl">
-            Construct Your Future &amp;{' '}
+            Sacramento&apos;s Trusted{' '}
             <span className="bg-gradient-to-r from-ics-primary to-white bg-clip-text text-transparent">
-              Your Dreams
+              Roofing
             </span>{' '}
-            with Sacramento&apos;s Trusted Roofing &amp; Solar Experts
+            Experts — Replacement, Repair &amp; Solar-Ready Roofs
           </h1>
 
           <p className="mt-5 max-w-xl text-base leading-relaxed text-ics-gray-200 sm:text-lg">
-            Where experience meets professionalism. We bring your vision to life with quality
-            craftsmanship, reliable solar integrations, premium ADU framing, and a deep commitment
-            to building strong, sustainable California communities.
+            For over a decade, ICS Roofing has protected homes and businesses across the Greater
+            Sacramento area with quality roof replacements, dependable repairs, and solar-ready
+            installations — backed by DBE-certified crews who treat your property like their own.
           </p>
 
           <ul className="mt-8 space-y-3">

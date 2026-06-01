@@ -1,30 +1,31 @@
-import { ArrowRight, Building2, Hammer, Sun } from 'lucide-react'
+import { ArrowRight, Building2, Home, Sun } from 'lucide-react'
 import Link from 'next/link'
+import { EXPERIENCE_LABEL } from '@/lib/constants'
 
 const SERVICE_ROWS = [
   {
-    title: 'Premium Roofing & Solar Eco-Integrations',
+    title: 'Residential Roof Replacement',
     description:
-      'High-efficiency roof systems paired with professional solar integration for Sacramento homes and businesses. We engineer durable assemblies that lower energy costs while protecting your structure through Central Valley heat, wind, and seasonal storms.',
-    cta: 'Explore Roofing & Solar',
-    icon: Sun,
+      'Full tear-offs, re-roofs, and upgrades built for Sacramento heat, wind, and seasonal rain. We help you choose the right shingles or membrane system, ventilation, and flashing details so your home stays dry for years.',
+    cta: 'Get a Roof Replacement Quote',
+    icon: Home,
     gradient: 'from-ics-primary/20 via-ics-gray-800 to-ics-gray-900',
     reverse: false,
   },
   {
-    title: 'ADU Design & Luxury New Home Construction',
+    title: 'Roof Repair & Storm Response',
     description:
-      'From accessory dwelling units to ground-up luxury residences, ICS delivers precision framing, code-compliant builds, and architectural collaboration that maximizes property value across the Greater Sacramento metro.',
-    cta: 'Start Your Build Consultation',
-    icon: Hammer,
+      'Leaks, missing shingles, damaged flashing, and post-storm assessments handled fast. Our team finds the source of the problem, documents what we see, and recommends repairs that fit your budget — not unnecessary upsells.',
+    cta: 'Schedule a Roof Inspection',
+    icon: Sun,
     gradient: 'from-ics-primary/25 via-ics-gray-800 to-ics-black',
     reverse: true,
   },
   {
-    title: 'Commercial Architecture & Drywall Maintenance',
+    title: 'Commercial & Solar-Ready Roofing',
     description:
-      'Structural commercial deployments, tenant improvements, and specialty drywall repair for facilities that demand minimal downtime. Our DBE-certified crews maintain safety-first job sites with proactive scheduling and transparent line-item proposals.',
-    cta: 'Request Commercial Assessment',
+      'Low-slope, TPO, and built-up systems for businesses that need minimal downtime, plus solar-ready roof prep when you are planning panels. DBE-certified crews coordinate scheduling around your operations.',
+    cta: 'Request Commercial Roofing Info',
     icon: Building2,
     gradient: 'from-ics-gray-800 via-ics-gray-900 to-ics-black',
     reverse: false,
@@ -47,7 +48,7 @@ function ServiceMockup({ row }) {
             <Icon className="h-10 w-10 text-ics-primary" strokeWidth={1.5} aria-hidden />
           </div>
           <p className="max-w-xs text-sm font-semibold uppercase tracking-widest text-ics-gray-400">
-            ICS Professional Grade
+            ICS Roofing — Sacramento
           </p>
         </div>
       </div>
@@ -80,12 +81,12 @@ export function Services() {
       <div className="mx-auto max-w-7xl px-4">
         <div className="mx-auto max-w-3xl text-center">
           <h2 className="font-display text-3xl font-bold text-ics-gray-900 sm:text-4xl">
-            Complete Roofing, Solar &amp; Construction Solutions
+            Full-Service Roofing for Sacramento Homes &amp; Businesses
           </h2>
           <p className="mt-4 text-ics-gray-600">
-            High-efficiency infrastructure transformations for residential and commercial properties
-            across the Sacramento metro — roofing, solar, ADUs, and structural builds executed with
-            30+ years of proven craftsmanship.
+            {EXPERIENCE_LABEL}: replacements, repairs, and commercial systems installed with
+            transparent pricing and crews who specialize in roofs — not general contracting side
+            projects.
           </p>
         </div>
 
@@ -95,14 +96,10 @@ export function Services() {
               key={row.title}
               className="group grid grid-cols-1 items-center gap-8 lg:grid-cols-2 lg:gap-12"
             >
-              <div
-                className={`order-1 ${row.reverse ? 'lg:order-1' : 'lg:order-2'}`}
-              >
+              <div className={`order-1 ${row.reverse ? 'lg:order-1' : 'lg:order-2'}`}>
                 <ServiceMockup row={row} />
               </div>
-              <div
-                className={`order-2 ${row.reverse ? 'lg:order-2' : 'lg:order-1'}`}
-              >
+              <div className={`order-2 ${row.reverse ? 'lg:order-2' : 'lg:order-1'}`}>
                 <ServiceCopy row={row} />
               </div>
             </div>

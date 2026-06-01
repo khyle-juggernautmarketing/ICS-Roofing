@@ -11,9 +11,8 @@ export function GeoTargeting() {
           Proudly Strengthening Sacramento Communities
         </h2>
         <p className="mt-4 text-ics-gray-600">
-          Rapid response times for residential and commercial worksites across Northern California and
-          the Greater Sacramento metropolitan area — from the Central Valley to surrounding foothill
-          communities.
+          Rapid roof repair and replacement service for homes and businesses across the Greater
+          Sacramento metro — from the Central Valley to surrounding foothill communities.
         </p>
 
         <div className="mx-auto mt-8 flex max-w-4xl flex-wrap justify-center gap-2">

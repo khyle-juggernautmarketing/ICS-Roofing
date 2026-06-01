@@ -12,8 +12,8 @@ export const OWNER = 'David Esparza'
 export const ADDRESS_SHORT = 'Sacramento, California'
 export const ADDRESS_REGION = 'Greater Sacramento Metropolitan Area'
 
-export const YEAR_ESTABLISHED = '1994'
-export const EXPERIENCE_LABEL = '30+ Years in Business'
+export const YEAR_ESTABLISHED = '2015'
+export const EXPERIENCE_LABEL = 'Over a Decade in Roofing'
 
 export const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL?.trim() ||
@@ -28,43 +28,46 @@ export const NAV_LINKS = [
 
 export const FOOTER_LINKS = NAV_LINKS
 
+export const HERO_BADGE =
+  'Over a Decade Serving Sacramento — Licensed Roofing — DBE Certified'
+
 export const VALUE_PROPS = [
   '100% Certified Minority & Women-Owned Enterprise (DBE Certified)',
-  'Comprehensive Professional Roof, Solar, & Structural Appraisals',
-  'Decades of Proven Structural Engineering Across 470+ Completed Projects',
+  'Free roof inspections, honest assessments, and clear line-item estimates',
+  'Over a decade of trusted roof replacement, repair, and storm-damage response',
 ]
 
 export const STATS = [
-  { value: '30', suffix: '', label: 'Years In Business Successfully' },
-  { value: '1,188+', suffix: '', label: 'Happy Local Customers' },
-  { value: '33', suffix: '', label: 'Trusted Strategic Partners' },
-  { value: '476', suffix: '', label: 'Premium Projects Completed' },
+  { value: '10+', suffix: '', label: 'Years Serving Sacramento Roofs' },
+  { value: '1,188+', suffix: '', label: 'Happy Roofing Customers' },
+  { value: '33', suffix: '', label: 'Trusted Material & Trade Partners' },
+  { value: '476+', suffix: '', label: 'Roofing Projects Completed' },
 ]
 
 export const PROCESS_STEPS = [
   {
     step: 1,
-    title: 'Personalized Quote',
+    title: 'Free Roof Quote',
     description:
-      'Request an evaluation through our secure, authenticated digital portal.',
+      'Tell us about your roof online or by phone — we respond quickly with next steps for a no-obligation evaluation.',
   },
   {
     step: 2,
-    title: 'Engineering Review',
+    title: 'On-Site Roof Inspection',
     description:
-      "David Esparza's specialized dispatch crews document physical site conditions and project blueprints.",
+      "David Esparza's crews document decking, flashing, ventilation, and damage so you get an accurate scope — not a guess.",
   },
   {
     step: 3,
-    title: 'Sustainable Planning',
+    title: 'Clear Roofing Proposal',
     description:
-      'Receive an explicit line-item proposal mapping fixed material cost variables with proactive scheduling updates.',
+      'Receive a detailed estimate with material options, warranty information, and a realistic install timeline.',
   },
   {
     step: 4,
-    title: 'Professional Construction',
+    title: 'Expert Roof Installation',
     description:
-      'Our DBE-certified team deploys safely, achieving superior craftsmanship while maintaining zero debris site rules.',
+      'Our DBE-certified roofers install to code, protect your property, and leave the site clean when we are finished.',
   },
 ]
 
@@ -85,16 +88,16 @@ export const GEO_CITIES = [
 ]
 
 export const FOOTER_TAGLINE =
-  'Building strong, sustainable communities and quality custom homes, ensuring every asset meets the highest standards of professional execution.'
+  'Sacramento roofing specialists focused on durable replacements, reliable repairs, and roofs built to handle Central Valley heat, wind, and winter storms.'
 
 export const ANNOUNCEMENT_TEXT =
-  '🏆 30+ Years of Excellence: Proudly Minority, Women-Owned, and DBE-Certified. Serving Sacramento & Surrounding Areas. Call Our Team:'
+  '🏆 Over a Decade of Roofing Excellence: Minority, Women-Owned, and DBE-Certified. Serving Sacramento & Surrounding Areas. Call Our Team:'
 
 export const PRIVACY_CONSENT_TEXT =
   'By clicking submit, you authorize ICS Roofing to text or call regarding this free quote under CCPA privacy compliance standards.'
 
 export const OPERATING_HOURS =
-  'Operational Hours: Monday - Friday: 7:00 AM - 6:00 PM / Emergency Deployment Dispatch Teams'
+  'Operational Hours: Monday - Friday: 7:00 AM - 6:00 PM / Emergency Roof Leak Dispatch Available'
 
 export const CERTIFICATION_FOOTNOTE =
   '100% Hispanic American Women Operated | Minority, Women-Owned, & DBE Certified Entity.'

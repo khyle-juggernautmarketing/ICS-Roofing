@@ -26,7 +26,7 @@ const montserrat = Montserrat({
 })
 
 const defaultDescription =
-  'ICS Roofing & Construction — commercial & residential roofing, solar integrations, ADUs, and luxury new home building in Sacramento, CA. DBE-certified, minority & women-owned. 30+ years of excellence. Free quotes.'
+  'ICS Roofing & Construction — residential and commercial roof replacement, repair, and solar-ready roofing in Sacramento, CA. Over a decade serving the Greater Sacramento metro. DBE-certified, minority & women-owned. Free roof quotes.'
 
 export const viewport: Viewport = {
   width: 'device-width',
@@ -40,7 +40,7 @@ export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   applicationName: BRAND_NAME,
   title: {
-    default: 'ICS Roofing & Construction | Sacramento Roofing, Solar & ADU Experts',
+    default: 'ICS Roofing & Construction | Sacramento Roof Replacement & Repair',
     template: `%s | ${BRAND_NAME}`,
   },
   appleWebApp: {
@@ -52,10 +52,11 @@ export const metadata: Metadata = {
   keywords: [
     'ICS Roofing Sacramento',
     'roofing contractor Sacramento CA',
-    'solar roof integration Sacramento',
-    'ADU construction Sacramento',
-    'commercial roofing Central Valley',
-    'luxury home builder Northern California',
+    'roof repair Sacramento',
+    'roof replacement Sacramento CA',
+    'commercial roofing Sacramento',
+    'emergency roof leak repair Sacramento',
+    'solar ready roofing Sacramento',
     'DBE certified roofing contractor',
     'minority women owned roofing Sacramento',
   ],
@@ -73,7 +74,7 @@ export const metadata: Metadata = {
     shortcut: '/favicon.svg',
   },
   openGraph: {
-    title: 'ICS Roofing & Construction | Sacramento Roofing & Solar',
+    title: 'ICS Roofing & Construction | Sacramento Roofing Experts',
     description: defaultDescription,
     type: 'website',
     locale: 'en_US',
@@ -83,7 +84,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'ICS Roofing & Construction | Sacramento Roofing & Solar',
+    title: 'ICS Roofing & Construction | Sacramento Roofing Experts',
     description: defaultDescription,
     images: ['/logo.png'],
   },
@@ -124,10 +125,11 @@ const localBusinessJsonLd = {
   priceRange: '$$',
   knowsAbout: [
     'Roof replacement',
-    'Solar integration',
-    'ADU construction',
-    'Luxury new home building',
-    'Commercial structural projects',
+    'Roof repair',
+    'Roof inspection',
+    'Commercial roofing',
+    'Solar-ready roofing',
+    'Storm damage roof repair',
   ],
   additionalProperty: [
     { '@type': 'PropertyValue', name: 'Minority-Owned Business', value: true },
@@ -140,7 +142,7 @@ const localBusinessJsonLd = {
 const webPageJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'WebPage',
-  name: `${BRAND_NAME} — Sacramento Roofing, Solar & Construction`,
+  name: `${BRAND_NAME} — Sacramento Roofing Replacement & Repair`,
   description: defaultDescription,
   url: SITE_URL,
   inLanguage: 'en-US',

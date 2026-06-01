@@ -7,12 +7,11 @@ export function Process() {
         <div className="rounded-3xl bg-ics-gray-900 p-8 text-white shadow-xl lg:p-12">
           <div className="mx-auto max-w-3xl text-center">
             <h2 className="font-display text-3xl font-bold sm:text-4xl">
-              Building Your Vision With Pure Confidence
+              Your Roofing Project, Step by Step
             </h2>
             <p className="mt-4 text-ics-gray-400">
-              Proactive communication, meticulous project metrics tracking, and seamless execution
-              from first evaluation through final walkthrough — so your timeline stays on track and
-              your investment is protected.
+              From the first inspection to the final walkthrough, we keep you informed so you know
+              exactly what your roof needs, what it will cost, and when our crew will be on site.
             </p>
           </div>
 
@@ -23,7 +22,7 @@ export function Process() {
                 className="rounded-2xl border border-ics-gray-800/60 bg-ics-gray-800/50 p-6 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:border-ics-primary/40"
               >
                 <span
-                  className="flex h-10 w-10 items-center justify-center rounded-full bg-ics-primary text-sm font-bold text-ics-black"
+                  className="flex h-10 w-10 items-center justify-center rounded-full bg-ics-primary text-sm font-bold text-white"
                   aria-hidden
                 >
                   {item.step}
