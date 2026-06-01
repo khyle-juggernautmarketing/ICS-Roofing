@@ -1,0 +1,11 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "ICS Roofing: open preview",
+      "type": "chrome",
+      "url": "http://127.0.0.1:3102",
+      "webRoot": "${workspaceFolder}"
+    }
+  ]
+}
