@@ -10,7 +10,3 @@ export function isValidWebhookUrl(url: string): boolean {
     return false
   }
 }
-
-export function isValidBearerSecret(secret: string): boolean {
-  return secret.length >= 12 && secret.length <= 256 && !/\s/.test(secret)
-}
