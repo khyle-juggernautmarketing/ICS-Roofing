@@ -11,17 +11,22 @@ import {
   Sun,
   Zap,
 } from 'lucide-react'
-import { useCallback, useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { BookingCalendar, FORM_ONLY_TIMEOUT_MS } from '@/components/BookingCalendar'
+import { formatAppointmentPst } from '@/lib/booking'
 import { PHONE_PRIMARY, PHONE_PRIMARY_HREF, PRIVACY_CONSENT_TEXT } from '@/lib/constants'
 import { SERVICE_OPTIONS, TIMELINE_OPTIONS } from '@/lib/formOptions'
 
 const STEPS = [
-  { id: 1, title: 'What service do you need?' },
-  { id: 2, title: 'How soon do you need this project launched?' },
+  { id: 1, title: 'What roofing service do you need?' },
+  { id: 2, title: 'How soon do you need this project?' },
   { id: 3, title: 'Your contact details' },
+  { id: 4, title: 'Pick your appointment (PST)' },
 ]
 
-const TOTAL_STEPS = 3
+const TOTAL_STEPS = 4
+const PENDING_KEY = 'ics-lead-pending'
 
 const HTML_TAG = /<[^>]*>/g
 const inputClass =
@@ -62,23 +67,6 @@ function useStepAdvanceDelay() {
   return ms
 }
 
-function SuccessMarks() {
-  return (
-    <svg className="h-28 w-28 text-ics-primary" viewBox="0 0 64 64" aria-hidden>
-      <circle cx="32" cy="32" r="28" fill="rgba(234,74,43,0.12)" />
-      <path
-        className="animate-check-stroke"
-        stroke="currentColor"
-        strokeWidth="3.5"
-        fill="none"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M18 34l8 8 20-22"
-      />
-    </svg>
-  )
-}
-
 function OptionTile({ label, iconKey, selected, disabled, onSelect }) {
   const Icon = ICON_MAP[iconKey] ?? Sun
   return (
@@ -107,13 +95,36 @@ function OptionTile({ label, iconKey, selected, disabled, onSelect }) {
   )
 }
 
+function buildPayload(data, submissionId, mode, appointmentAt, honeypot) {
+  return {
+    service: data.service,
+    timeline: data.timeline,
+    name: sanitizeInput(data.name.trim()),
+    email: sanitizeInput(data.email.trim()),
+    phone: sanitizeInput(data.phone.trim()),
+    address: sanitizeInput(data.address.trim()),
+    privacyAccepted: data.privacyAccepted,
+    submissionId,
+    mode,
+    ...(appointmentAt ? { appointmentAt } : {}),
+    _hp: honeypot,
+  }
+}
+
 export function LeadForm() {
+  const router = useRouter()
   const [step, setStep] = useState(1)
   const [data, setData] = useState(initialForm)
   const [status, setStatus] = useState('idle')
   const [errorMsg, setErrorMsg] = useState('')
   const [honeypot, setHoneypot] = useState('')
+  const [submissionId, setSubmissionId] = useState('')
+  const [appointmentIso, setAppointmentIso] = useState('')
+  const [timeoutMinutesLeft, setTimeoutMinutesLeft] = useState(10)
   const stepAdvanceDelayMs = useStepAdvanceDelay()
+  const submittedRef = useRef(false)
+  const timeoutRef = useRef(null)
+  const countdownRef = useRef(null)
 
   const progress = (step / TOTAL_STEPS) * 100
 
@@ -135,7 +146,138 @@ export function LeadForm() {
     [stepAdvanceDelayMs],
   )
 
-  const submit = async (e) => {
+  const validateContact = () => {
+    const name = sanitizeInput(data.name.trim())
+    const email = sanitizeInput(data.email.trim())
+    const phone = sanitizeInput(data.phone.trim())
+    const address = sanitizeInput(data.address.trim())
+
+    if (!name || !email || !phone || !address) {
+      setErrorMsg('Please fill in all fields.')
+      return null
+    }
+    if (phone.replace(/\D/g, '').length < 10) {
+      setErrorMsg('Please enter a valid phone number.')
+      return null
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setErrorMsg('Please enter a valid email.')
+      return null
+    }
+    if (address.length < 5) {
+      setErrorMsg('Please enter a valid property address.')
+      return null
+    }
+    if (!data.privacyAccepted) {
+      setErrorMsg('Please authorize contact to submit your request.')
+      return null
+    }
+    return { name, email, phone, address }
+  }
+
+  const goToThankYou = (booked, appointmentDisplay, name) => {
+    sessionStorage.setItem(
+      'ics-thankyou',
+      JSON.stringify({ booked, appointmentDisplay, name }),
+    )
+    sessionStorage.removeItem(PENDING_KEY)
+    router.push('/thank-you')
+  }
+
+  const submitLead = useCallback(
+    async ({ mode, appointmentAt = null }) => {
+      if (submittedRef.current) return
+      if (honeypot) {
+        submittedRef.current = true
+        goToThankYou(false, '', data.name)
+        return
+      }
+
+      submittedRef.current = true
+      setStatus('loading')
+      setErrorMsg('')
+
+      const id =
+        submissionId ||
+        (typeof crypto !== 'undefined' && crypto.randomUUID
+          ? crypto.randomUUID()
+          : `ics-${Date.now()}`)
+
+      try {
+        const res = await fetch('/api/lead', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+          body: JSON.stringify(buildPayload(data, id, mode, appointmentAt, honeypot)),
+          cache: 'no-store',
+        })
+
+        const json = await res.json().catch(() => ({}))
+
+        if (!res.ok) {
+          submittedRef.current = false
+          setStatus('idle')
+          setErrorMsg(
+            json.error ||
+              `Unable to submit right now. Please call ${PHONE_PRIMARY} or try again shortly.`,
+          )
+          return
+        }
+
+        const display =
+          mode === 'with_appointment' && appointmentAt
+            ? formatAppointmentPst(appointmentAt)
+            : ''
+
+        goToThankYou(mode === 'with_appointment', display, sanitizeInput(data.name.trim()))
+      } catch {
+        submittedRef.current = false
+        setStatus('idle')
+        setErrorMsg(`Network error. Please try again or call ${PHONE_PRIMARY}.`)
+      }
+    },
+    [data, honeypot, submissionId, router],
+  )
+
+  const clearSchedulingTimers = () => {
+    if (timeoutRef.current) clearTimeout(timeoutRef.current)
+    if (countdownRef.current) clearInterval(countdownRef.current)
+  }
+
+  useEffect(() => {
+    if (step !== 4) {
+      clearSchedulingTimers()
+      return
+    }
+
+    const id =
+      submissionId ||
+      (typeof crypto !== 'undefined' && crypto.randomUUID
+        ? crypto.randomUUID()
+        : `ics-${Date.now()}`)
+    if (!submissionId) setSubmissionId(id)
+
+    sessionStorage.setItem(
+      PENDING_KEY,
+      JSON.stringify({
+        data,
+        submissionId: id,
+        startedAt: Date.now(),
+      }),
+    )
+
+    setTimeoutMinutesLeft(10)
+    countdownRef.current = setInterval(() => {
+      setTimeoutMinutesLeft((m) => Math.max(0, m - 1))
+    }, 60_000)
+
+    timeoutRef.current = setTimeout(() => {
+      submitLead({ mode: 'form_only' })
+    }, FORM_ONLY_TIMEOUT_MS)
+
+    return clearSchedulingTimers
+  }, [step, submissionId, data, submitLead])
+
+  const continueToCalendar = (e) => {
     e.preventDefault()
     setErrorMsg('')
 
@@ -149,103 +291,18 @@ export function LeadForm() {
       setStep(2)
       return
     }
+    if (!validateContact()) return
 
-    const name = sanitizeInput(data.name.trim())
-    const email = sanitizeInput(data.email.trim())
-    const phone = sanitizeInput(data.phone.trim())
-    const address = sanitizeInput(data.address.trim())
-
-    if (!name || !email || !phone || !address) {
-      setErrorMsg('Please fill in all fields.')
-      return
-    }
-    const phoneDigits = phone.replace(/\D/g, '')
-    if (phoneDigits.length < 10) {
-      setErrorMsg('Please enter a valid phone number.')
-      return
-    }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      setErrorMsg('Please enter a valid email.')
-      return
-    }
-    if (address.length < 5) {
-      setErrorMsg('Please enter a valid property address.')
-      return
-    }
-    if (!data.privacyAccepted) {
-      setErrorMsg('Please authorize contact to submit your request.')
-      return
-    }
-
-    const payload = {
-      service: data.service,
-      timeline: data.timeline,
-      name,
-      email,
-      phone,
-      address,
-      privacyAccepted: data.privacyAccepted,
-      _hp: honeypot,
-    }
-
-    if (honeypot) {
-      setStatus('success')
-      return
-    }
-
-    setStatus('loading')
-    try {
-      const res = await fetch('/api/lead', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-        body: JSON.stringify(payload),
-        cache: 'no-store',
-      })
-
-      const json = await res.json().catch(() => ({}))
-
-      if (!res.ok) {
-        setStatus('idle')
-        setErrorMsg(
-          json.error ||
-            `Unable to submit right now. Please call ${PHONE_PRIMARY} or try again shortly.`,
-        )
-        return
-      }
-
-      setData(initialForm)
-      setStep(1)
-      setStatus('success')
-    } catch {
-      setStatus('idle')
-      setErrorMsg(`Network error. Please try again or call ${PHONE_PRIMARY}.`)
-    }
+    setStep(4)
   }
 
-  if (status === 'success') {
-    return (
-      <div className="animate-form-success flex min-h-[280px] flex-col items-center justify-center rounded-2xl border border-ics-gray-200 bg-white px-2 py-6 text-center shadow-2xl">
-        <SuccessMarks />
-        <h3 className="mt-6 font-display text-xl font-bold text-ics-black">Request Received!</h3>
-        <p className="mt-2 max-w-sm text-ics-gray-600">
-          Our team will reach out shortly. For urgent projects, call{' '}
-          <a
-            href={PHONE_PRIMARY_HREF}
-            className="font-semibold text-ics-primary underline decoration-ics-primary/40 underline-offset-2"
-          >
-            {PHONE_PRIMARY}
-          </a>
-          .
-        </p>
-        <button
-          type="button"
-          onClick={() => setStatus('idle')}
-          className="mt-8 min-h-12 rounded-xl border-2 border-ics-gray-200 px-6 text-sm font-bold text-ics-gray-800 transition-all duration-300 hover:border-ics-primary hover:bg-ics-primary-light"
-        >
-          Submit another request
-        </button>
-      </div>
-    )
+  const confirmAppointment = () => {
+    if (!appointmentIso) {
+      setErrorMsg('Please select an appointment time.')
+      return
+    }
+    clearSchedulingTimers()
+    submitLead({ mode: 'with_appointment', appointmentAt: appointmentIso })
   }
 
   return (
@@ -263,8 +320,10 @@ export function LeadForm() {
       </div>
 
       <div className="mb-5 mt-4 text-center">
-        <h3 className="font-display text-lg font-bold text-ics-black sm:text-xl">Get Your Free Quote</h3>
-        <p className="mt-1 text-xs text-ics-gray-600 sm:text-sm">Three quick steps — no obligation.</p>
+        <h3 className="font-display text-lg font-bold text-ics-black sm:text-xl">Get Your Free Roof Quote</h3>
+        <p className="mt-1 text-xs text-ics-gray-600 sm:text-sm">
+          {step < 4 ? 'Four quick steps — schedule your inspection.' : 'Choose a time in Pacific Time (PST)'}
+        </p>
       </div>
 
       <div key={step} className="animate-form-step">
@@ -301,7 +360,7 @@ export function LeadForm() {
         )}
 
         {step === 3 && (
-          <form onSubmit={submit} className="space-y-3">
+          <form onSubmit={continueToCalendar} className="space-y-3">
             <label className="sr-only" aria-hidden>
               Website
               <input
@@ -381,29 +440,55 @@ export function LeadForm() {
             )}
             <button
               type="submit"
+              className="flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-ics-primary text-sm font-bold text-white transition-all duration-300 hover:bg-ics-primary-dark"
+            >
+              Continue to Schedule Appointment
+            </button>
+          </form>
+        )}
+
+        {step === 4 && (
+          <div className="space-y-4">
+            <p className="text-xs text-ics-gray-500">
+              If you don&apos;t pick a time within ~{timeoutMinutesLeft || 1} min, we&apos;ll still
+              send your quote request without an appointment.
+            </p>
+            <BookingCalendar
+              selectedIso={appointmentIso}
+              onSelect={setAppointmentIso}
               disabled={status === 'loading'}
+            />
+            {errorMsg && (
+              <p className="text-sm text-red-600" role="alert">
+                {errorMsg}
+              </p>
+            )}
+            <button
+              type="button"
+              onClick={confirmAppointment}
+              disabled={status === 'loading' || !appointmentIso}
               className="flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-ics-primary text-sm font-bold text-white transition-all duration-300 hover:bg-ics-primary-dark disabled:opacity-70"
             >
               {status === 'loading' ? (
                 <>
                   <Loader2 className="h-5 w-5 animate-spin" aria-hidden />
-                  Sending...
+                  Confirming…
                 </>
               ) : (
-                'Submit Free Quote Request'
+                'Confirm Appointment & Submit'
               )}
             </button>
-          </form>
+          </div>
         )}
       </div>
 
-      {errorMsg && step !== 3 && (
+      {errorMsg && step !== 3 && step !== 4 && (
         <p className="mt-3 text-sm text-red-600" role="alert">
           {errorMsg}
         </p>
       )}
 
-      {step > 1 && (
+      {step > 1 && step !== 4 && (
         <div className="mt-4 border-t border-ics-gray-200 pt-3">
           <button
             type="button"
@@ -414,6 +499,22 @@ export function LeadForm() {
             className="flex min-h-12 items-center text-sm font-semibold text-ics-gray-600 transition-colors duration-300 hover:text-ics-black"
           >
             ← Back
+          </button>
+        </div>
+      )}
+
+      {step === 4 && (
+        <div className="mt-4 border-t border-ics-gray-200 pt-3">
+          <button
+            type="button"
+            disabled={status === 'loading'}
+            onClick={() => {
+              setErrorMsg('')
+              setStep(3)
+            }}
+            className="flex min-h-12 items-center text-sm font-semibold text-ics-gray-600 transition-colors duration-300 hover:text-ics-black disabled:opacity-50"
+          >
+            ← Back to contact info
           </button>
         </div>
       )}

@@ -1,4 +1,6 @@
 import { NextResponse } from 'next/server'
+import { formatAppointmentPst } from '@/lib/booking'
+import { claimSubmission, formatBookingForWebhook, markSubmissionSent, releaseBooking, reserveBooking } from '@/lib/bookingStore'
 import { PHONE_PRIMARY } from '@/lib/constants'
 import { rateLimitKey, isRateLimited, sanitizeRequestMeta, validateLeadBody } from '@/lib/leadSecurity'
 import { isAllowedLeadRequest } from '@/lib/requestSecurity'
@@ -9,7 +11,7 @@ export const dynamic = 'force-dynamic'
 
 const WEBHOOK_TIMEOUT_MS = 20_000
 const WEBHOOK_MAX_ATTEMPTS = 3
-const MAX_BODY_BYTES = 8_192
+const MAX_BODY_BYTES = 12_288
 
 const JSON_HEADERS = {
   'Content-Type': 'application/json',
@@ -130,7 +132,47 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: validated.error }, { status: 400, headers: JSON_HEADERS })
     }
 
-    const { service, timeline, name, email, phone, address, privacyAccepted } = validated.data
+    const {
+      service,
+      timeline,
+      name,
+      email,
+      phone,
+      address,
+      privacyAccepted,
+      submissionId,
+      mode,
+      appointmentAt,
+    } = validated.data
+
+    const isNew = await claimSubmission(submissionId)
+    if (!isNew) {
+      return NextResponse.json({ ok: true, duplicate: true }, { headers: JSON_HEADERS })
+    }
+
+    let appointmentFields: Record<string, unknown> = {
+      appointmentBooked: false,
+      appointmentSkipped: mode === 'form_only',
+    }
+
+    if (mode === 'with_appointment' && appointmentAt) {
+      const reserved = await reserveBooking({
+        startIso: appointmentAt,
+        submissionId,
+        email,
+      })
+
+      if (!reserved.ok) {
+        return NextResponse.json({ error: reserved.error }, { status: 409, headers: JSON_HEADERS })
+      }
+
+      appointmentFields = {
+        appointmentBooked: true,
+        appointmentSkipped: false,
+        appointmentDisplay: formatAppointmentPst(appointmentAt),
+        ...formatBookingForWebhook(appointmentAt),
+      }
+    }
 
     const payload = {
       service,
@@ -143,10 +185,13 @@ export async function POST(request: Request) {
       zip: address,
       privacyAccepted,
       consent: privacyAccepted,
+      submissionId,
+      submissionMode: mode,
       source: 'ics-roofing-landing',
       submittedAt: new Date().toISOString(),
       referer: sanitizeRequestMeta(request.headers.get('referer')),
       userAgent: sanitizeRequestMeta(request.headers.get('user-agent')),
+      ...appointmentFields,
     }
 
     let res: Response
@@ -155,6 +200,9 @@ export async function POST(request: Request) {
     } catch (e) {
       const aborted = e instanceof Error && e.name === 'AbortError'
       console.error('Lead API: webhook unreachable', aborted ? 'timeout' : 'network')
+      if (mode === 'with_appointment') {
+        await releaseBooking(submissionId)
+      }
       return NextResponse.json(
         {
           error: aborted
@@ -166,7 +214,18 @@ export async function POST(request: Request) {
     }
 
     if (res.status >= 200 && res.status < 300) {
-      return NextResponse.json({ ok: true }, { headers: JSON_HEADERS })
+      await markSubmissionSent(submissionId)
+      return NextResponse.json(
+        {
+          ok: true,
+          appointmentBooked: mode === 'with_appointment',
+        },
+        { headers: JSON_HEADERS },
+      )
+    }
+
+    if (mode === 'with_appointment') {
+      await releaseBooking(submissionId)
     }
 
     const errBody = await res.text().catch(() => '')

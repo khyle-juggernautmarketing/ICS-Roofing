@@ -11,6 +11,8 @@ const MAX = {
 const CONTROL_CHARS = /[\u0000-\u001F\u007F]/g
 const HTML_TAG = /<[^>]*>/g
 
+export type LeadSubmissionMode = 'with_appointment' | 'form_only'
+
 export type LeadFormData = {
   service: string
   timeline: string
@@ -19,6 +21,9 @@ export type LeadFormData = {
   phone: string
   address: string
   privacyAccepted: boolean
+  submissionId: string
+  mode: LeadSubmissionMode
+  appointmentAt?: string
 }
 
 export function sanitizeText(value: unknown, maxLen: number): string {
@@ -85,9 +90,37 @@ export function validateLeadBody(body: unknown):
     return { ok: false, error: 'Please enter a valid property address' }
   }
 
+  const submissionId = sanitizeText(raw.submissionId, 64)
+  if (!submissionId || submissionId.length < 8) {
+    return { ok: false, error: 'Invalid submission' }
+  }
+
+  const modeRaw = sanitizeText(raw.mode, 32)
+  const mode: LeadSubmissionMode =
+    modeRaw === 'form_only' ? 'form_only' : 'with_appointment'
+
+  let appointmentAt: string | undefined
+  if (mode === 'with_appointment') {
+    appointmentAt = sanitizeText(raw.appointmentAt, 64)
+    if (!appointmentAt || Number.isNaN(Date.parse(appointmentAt))) {
+      return { ok: false, error: 'Please select an appointment time' }
+    }
+  }
+
   return {
     ok: true,
-    data: { service, timeline, name, email, phone, address, privacyAccepted },
+    data: {
+      service,
+      timeline,
+      name,
+      email,
+      phone,
+      address,
+      privacyAccepted,
+      submissionId,
+      mode,
+      appointmentAt,
+    },
   }
 }
 
